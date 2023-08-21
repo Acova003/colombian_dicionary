@@ -31,7 +31,7 @@ function Dictionary() {
         />
         <br></br>
         <button type="submit" className="btn btn-outline-dark ">
-          Dele
+          Delete
         </button>
       </form>
     </div>
