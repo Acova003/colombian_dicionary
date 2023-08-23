@@ -30,7 +30,7 @@ function Dictionary() {
           value={searchInput}
         />
         <br></br>
-        <button type="submit" className="btn btn-outline-dark ">
+        <button type="submit" className="btn btn-dark">
           Delete
         </button>
       </form>

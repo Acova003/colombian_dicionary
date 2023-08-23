@@ -5,7 +5,7 @@ import Result from "../components/Result";
 export default function Allwords() {
   const [glossary, SetGlossary] = useState([]);
   const [result, SetResult] = useState(false);
-  const [wordObject, setWordObject] = useState({});
+  // const [wordObject, setWordObject] = useState({});
   const navigate = useNavigate();
 
   // Gets all the words from the DB to set glossary state
@@ -28,10 +28,6 @@ export default function Allwords() {
     navigate(`/search/${word}`); // here is the link to Result page
     SetResult(true);
   };
-
-  // const handleChange = () => {
-  //   SetResult(false);
-  // };
 
   //Charges the DB so it shows all the words
   useEffect(() => {

@@ -3,38 +3,33 @@ import Wordform from "../components/Wordform";
 import Deleteword from "../components/Deleteword";
 
 export default function Postrequest() {
-  const [pageAdd, SetPageAdd] = useState(true);
+  const [mode, setMode] = useState("add"); // Can be 'add', 'delete', or 'update'
 
-  const handleClick = () => {
-    // if page add is true show Wordform to ass a word
-    if (pageAdd) {
-      SetPageAdd(false);
-      // if page add is false show Deleteword to delete a word
-    } else if (!pageAdd) {
-      SetPageAdd(true);
+  const renderContent = () => {
+    switch (mode) {
+      case "add":
+        return <Wordform />;
+      case "delete":
+        return <Deleteword />;
+      case "update":
+        // Render the Wordform component in update mode (populate the form with the word to update)
+        return <Wordform mode="update" />;
+      default:
+        return null;
     }
   };
+
   return (
     <div>
       <div>
-        {/*React didn't like the omit  */}
-        <button onClick={!pageAdd ? () => handleClick() : null}>
-          Add a word
-        </button>
-        <button onClick={pageAdd ? () => handleClick() : null}>
-          Delete word
-        </button>
+        {["add", "delete", "update"].map((m) => (
+          // dynamically render buttons
+          <button key={m} className="wordButton" onClick={() => setMode(m)}>
+            {`${m.charAt(0).toUpperCase() + m.slice(1)} word`}
+          </button>
+        ))}
       </div>
-
-      {pageAdd ? (
-        <div>
-          <Wordform />
-        </div>
-      ) : (
-        <div>
-          <Deleteword />
-        </div>
-      )}
+      {renderContent()}
     </div>
   );
 }

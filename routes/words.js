@@ -2,14 +2,16 @@ var express = require("express");
 var router = express.Router();
 const db = require("../model/helper");
 
-const getAllItems = async (req, res) => {
+//  GET all items
+async function getAllItems(req, res) {
   try {
     const results = await db("SELECT * FROM words ORDER BY id ASC;");
     res.send(results.data);
-  } catch {
-    res.status(500).send(err);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send({ error: err.message });
   }
-};
+}
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -60,29 +62,18 @@ the idea would be to make this into a single SQL line
 UPDATE words SET keyname= 'obj.value' WHERE id= obj.id ;
 */
 router.put("/", async function (req, res, next) {
-  const {
-    // id, We never really get the ID unless we are in the back end app
-    word,
-    category,
-    definition_es,
-    definition_en,
-    example_1,
-    example_2,
-  } = req.body;
+  const { word, category, definition_es, definition_en, example_1, example_2 } =
+    req.body;
 
   try {
     await db(
-      // for reference here is the DB request in MySQL
-      `UPDATE words SET word="${word}", category="${category}", definition_es="${definition_es}", definition_en="${definition_en}", example_1="${example_1}", example_2 ="${example_2}"  WHERE word=${word};`
+      `UPDATE words SET word="${word}", category="${category}", definition_es="${definition_es}", definition_en="${definition_en}", example_1="${example_1}", example_2="${example_2}" WHERE word="${word}";`
     );
-    getAllItems(req, res);
+    getAllItems(req, res); // send back all the items in the DB
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
 });
-
-/*RED BUTTON delete from the database
- */
 
 router.delete("/:word", async function (req, res, next) {
   const {
@@ -100,7 +91,8 @@ router.delete("/:word", async function (req, res, next) {
       // for reference here is the DB request in MySQL
       ` DELETE FROM words WHERE word LIKE '%${word}%'; `
     );
-    getAllItems(req, res);
+    // No content response. Send a 204 No Content response for successful delete
+    res.status(204).end();
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

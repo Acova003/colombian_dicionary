@@ -18,7 +18,7 @@ function App() {
 
           <Link to="Allwords">Glossary</Link>
 
-          <Link to="Postrequest">Add your word</Link>
+          <Link to="Postrequest">Manage words</Link>
         </nav>
         <h1>Colombian Dictionary</h1>
         <div></div>

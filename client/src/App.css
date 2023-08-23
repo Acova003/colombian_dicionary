@@ -9,3 +9,28 @@
 .card {
   padding: 2em;
 }
+
+.wordButton {
+  margin: 1em;
+  padding: 1em;
+  background-color: #c7eba6;
+  border-radius: 5px;
+  border: 1px solid #c7eba6;
+  color: #000;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Button gets darker when pointer hovers it */
+.wordButton:hover {
+  background-color: #a5d884;
+  border: 1px solid #a5d884;
+}
+
+/* Added to make dropdown scrollable */
+.dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+}

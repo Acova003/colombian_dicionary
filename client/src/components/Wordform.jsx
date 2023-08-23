@@ -1,29 +1,74 @@
 import React from "react";
 import { useState, useEffect } from "react";
 
-export default function Wordform() {
-  const [notEmpty, SetNotEmpty] = useState(false);
-  // states to build the body to the backend app in order to POST a new word
+export default function Wordform({ initialData = null, mode = "add" }) {
+  // Initialize the request state with initialData or default values
+  // An object containing word data
   const [request, SetRequest] = useState({
-    word: "",
-    category: "",
-    definition_es: "",
-    definition_en: "",
-    example_1: "",
-    example_2: "",
+    word: initialData ? initialData.word : "",
+    category: initialData ? initialData.category : "",
+    definition_es: initialData ? initialData.definition_es : "",
+    definition_en: initialData ? initialData.definition_en : "",
+    example_1: initialData ? initialData.example_1 : "",
+    example_2: initialData ? initialData.example_2 : "",
   });
-  // function to check if request is empyt
+  // An array containing all words fetched from the database
+  const [allWords, setAllWords] = useState([]);
+  // The word selected from the dropdown to be updated
+  const [selectedWord, setSelectedWord] = useState(null);
 
-  function isEmpty(object) {
-    for (const key in object) {
-      if (object.hasOwnProperty(key)) {
-        if (object[key]) SetNotEmpty(true);
+  // Gets all the words from the DB to set glossary state
+  const getAllWords = async () => {
+    try {
+      const response = await fetch(`/api/words`, {
+        method: "GET",
+      });
+
+      const json = await response.json();
+      setAllWords(json);
+    } catch (error) {
+      console.log("errors");
+    }
+  };
+
+  // this function does the PUT into the DB
+  const updateWord = async () => {
+    try {
+      const response = await fetch(`/api/words`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (response.ok) {
+        const updatedWords = await response.json();
+        console.log("Updated words:", updatedWords);
       } else {
-        SetNotEmpty(false);
+        console.log("Failed to update word.");
+      }
+    } catch (error) {
+      console.log("error:", error);
+    }
+  };
+
+  // function to check if request is empty
+  const allFieldsFilled = () => {
+    for (const key in request) {
+      if (!request[key]) {
+        return false; // return false if any field is empty
       }
     }
-    return console.log(notEmpty);
-  }
+    return true; // all fields have values
+  };
+
+  // If mode is update, call getAllWords when the component mounts
+  useEffect(() => {
+    if (mode === "update") {
+      getAllWords();
+    }
+  }, [mode]);
 
   //handles changes and updates the state with the prevSate + {keyname:inputvalue}
   const handleChange = (event) => {
@@ -33,17 +78,19 @@ export default function Wordform() {
     }));
   };
 
-  // this functions handles the submit button cf button
-  const handleSubmit = () => {
-    console.log(isEmpty(request));
-
-    if (!notEmpty) {
-      postWord();
-      alert("Yohoo you added a word");
+  // this functions handles the submit button
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (allFieldsFilled()) {
+      mode === "add" ? postWord() : updateWord();
+      alert(
+        `Action successful for ${
+          mode === "add" ? mode : mode.slice(0, -1)
+        }ing a word`
+      );
     } else {
       alert("Pongase las pilas y ponga todas las palabras");
     }
-    // here you perform the post
   };
 
   // this function does the POST into the DB
@@ -59,68 +106,90 @@ export default function Wordform() {
 
       // getAllwords();
     } catch (error) {
-      console.log("errorz");
+      console.log("errors");
     }
   };
-  // Gets all words to show them in postman aka All the database
-  // const getAllwords = async () => {
-  //   try {
-  //     const response = await fetch(`/api/words`, {
-  //       method: "GET",
-  //     });
-
-  //     const json = await response.json();
-  //     console.log(json);
-  //   } catch (error) {
-  //     console.log("errorz");
-  //   }
-  // };
 
   return (
     <div className="container">
-      <form onSubmit={handleSubmit}>
-        {/* here the button/enter handles the submit as does the fetch requuest */}
-        <label>Qué palabra quieres definir ? </label>
-        <input
-          type="text"
-          name="word" //=> event.target.name
-          value={request.word} //=> event.target.value reactive date with the request State
-          onChange={handleChange}
-        />
-        <label>Que categoria es ? </label> {/* dropdown menu*/}
-        <input
-          type="text"
-          name="category"
-          value={request.category}
-          onChange={handleChange}
-        />
-        <label>Porfavor define la palabra : </label>
-        <textarea
-          name="definition_es"
-          value={request.definition_es}
-          onChange={handleChange}
-        ></textarea>
-        <label>Ahora en inglés - sin esta no se gradua mija: </label>
-        <textarea
-          name="definition_en"
-          value={request.definition_en}
-          onChange={handleChange}
-        ></textarea>
-        <label>Aquí va un ejemplo : </label>
-        <textarea
-          name="example_1"
-          value={request.example_1}
-          onChange={handleChange}
-        ></textarea>
-        <label>Y si quiere otro sumercé : </label>
-        <textarea
-          name="example_2"
-          value={request.example_2}
-          onChange={handleChange}
-        ></textarea>
-        <br></br>
-        <button className="btn btn-outline-dark">Hagale!</button>
-      </form>
+      {mode === "update" && (
+        <div className="dropdown">
+          <div>
+            <h3>Which word do you want to update?</h3>
+          </div>
+          <button
+            className="btn btn-warning dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton"
+            data-bs-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Select a word
+          </button>
+          <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {allWords.map((word) => (
+              <a
+                className="dropdown-item"
+                href="#"
+                key={word.id}
+                onClick={(event) => {
+                  event.preventDefault();
+                  SetRequest(word);
+                  setSelectedWord(word);
+                }}
+              >
+                {word.word}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(mode === "add" || selectedWord) && (
+        <form onSubmit={handleSubmit}>
+          <label>Qué palabra quieres definir ? </label>
+          <input
+            type="text"
+            name="word"
+            value={request.word}
+            onChange={handleChange}
+          />
+          <label>Que categoria es ? </label>
+          <input
+            type="text"
+            name="category"
+            value={request.category}
+            onChange={handleChange}
+          />
+          <label>Porfavor define la palabra : </label>
+          <textarea
+            name="definition_es"
+            value={request.definition_es}
+            onChange={handleChange}
+          ></textarea>
+          <label>Ahora en inglés - sin esta no se gradua mija: </label>
+          <textarea
+            name="definition_en"
+            value={request.definition_en}
+            onChange={handleChange}
+          ></textarea>
+          <label>Aquí va un ejemplo : </label>
+          <textarea
+            name="example_1"
+            value={request.example_1}
+            onChange={handleChange}
+          ></textarea>
+          <label>Y si quiere otro sumercé : </label>
+          <textarea
+            name="example_2"
+            value={request.example_2}
+            onChange={handleChange}
+          ></textarea>
+          <br />
+          <button className="btn btn-dark">Hagale!</button>
+        </form>
+      )}
     </div>
   );
 }
